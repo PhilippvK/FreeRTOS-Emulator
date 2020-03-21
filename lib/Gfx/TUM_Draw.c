@@ -489,14 +489,11 @@ static int vDrawArrow(unsigned short x1, unsigned short y1, unsigned short x2,
 
 static int vHandleDrawJob(draw_job_t *job)
 {
-	printf("TEST26\n");
 	int ret = 0;
 	if (!job)
 		return -1;
-	printf("TEST27\n");
 
 	assert(job->data);
-	printf("TEST28\n");
 
 	switch (job->type) {
 	case DRAW_CLEAR:
@@ -584,7 +581,6 @@ static int vHandleDrawJob(draw_job_t *job)
 		break;
 	}
 	free(job->data);
-	printf("TEST29\n");
 
 	return ret;
 }
@@ -608,27 +604,22 @@ static void logCriticalError(char *msg)
 void vDrawUpdateScreen(void)
 {
 
-		printf("TEST21\n");
 		if (!job_list_head.next) {
 			goto done;
 		}
-		printf("TEST22\n");
 
 		draw_job_t *tmp_job;
 
 		while ((tmp_job = popDrawJob()) != NULL) {
-			printf("TEST23\n");
 			assert(tmp_job->data);
 			if (vHandleDrawJob(tmp_job) == -1)
 				goto draw_error;
 			free(tmp_job);
 		}
-		printf("TEST24\n");
 
 		SDL_RenderPresent(renderer);
 
 	done:
-		printf("TEST25\n");
 		return;
 
 	draw_error:
@@ -651,8 +642,8 @@ void vInitDrawing2(char *path)
 
 	if (first) {
 		first = 0;
-		if (SDL_Init(SDL_INIT_VIDEO) != 0){
-		//if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
+		//if (SDL_Init(SDL_INIT_VIDEO) != 0){
+		if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
 			fprintf(stderr, "[ERROR] SDL_Init failed: %s\n",SDL_GetError());
     			exit(EXIT_FAILURE);
 		}
@@ -677,8 +668,8 @@ void vInitDrawing2(char *path)
 
 		window = SDL_CreateWindow("FreeRTOS Simulator", SDL_WINDOWPOS_CENTERED,
 					  SDL_WINDOWPOS_CENTERED, screen_width,
-					  //screen_height, SDL_WINDOW_OPENGL);
-					  screen_height, 0);
+					  screen_height, SDL_WINDOW_OPENGL);
+					  //screen_height, 0);
 
 		if (!window) {
 			logSDLError("vInitDrawing->CreateWindow");
@@ -692,6 +683,8 @@ void vInitDrawing2(char *path)
 
 		if (SDL_GL_MakeCurrent(window, _glContextId) < 0)
                    logSDLError("Failed to make GL context current: ");
+		if (SDL_GL_MakeCurrent(window, NULL) < 0)
+                   logSDLError("Failed to make GL context NOT current: ");
 	} else {
 
 		if (SDL_GL_MakeCurrent(window, _glContextId) < 0)

@@ -161,15 +161,15 @@ void basicSequentialStateMachine(void *pvParameters)
 			switch (current_state) {
 			case STATE_ONE:
 				if (DemoTask2)
-					vTaskSuspend(DemoTask2);
+					vTaskSuspend(DemoTask1);
 				if (DemoTask1)
-					vTaskResume(DemoTask1);
+					vTaskResume(DemoTask2);
 				break;
 			case STATE_TWO:
 				if (DemoTask1)
-					vTaskSuspend(DemoTask1);
+					vTaskSuspend(DemoTask2);
 				if (DemoTask2)
-					vTaskResume(DemoTask2);
+					vTaskResume(DemoTask1);
 				break;
 			default:
 				break;
@@ -184,7 +184,7 @@ void vSwapBuffers(void *pvParameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
-	const TickType_t frameratePeriod = 20;
+	const TickType_t frameratePeriod = 16;
 	
 	vInitDrawing2(bin_folder_path);
 	SDL_EventState(SDL_WINDOWEVENT, SDL_IGNORE);
