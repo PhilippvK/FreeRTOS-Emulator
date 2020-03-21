@@ -1,16 +1,9 @@
-#include <time.h>
-
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
 #include <SDL2/SDL_scancode.h>
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
 
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -161,15 +154,15 @@ void basicSequentialStateMachine(void *pvParameters)
 			switch (current_state) {
 			case STATE_ONE:
 				if (DemoTask2)
-					vTaskSuspend(DemoTask1);
+					vTaskSuspend(DemoTask2);
 				if (DemoTask1)
-					vTaskResume(DemoTask2);
+					vTaskResume(DemoTask1);
 				break;
 			case STATE_TWO:
 				if (DemoTask1)
-					vTaskSuspend(DemoTask2);
+					vTaskSuspend(DemoTask1);
 				if (DemoTask2)
-					vTaskResume(DemoTask1);
+					vTaskResume(DemoTask2);
 				break;
 			default:
 				break;
@@ -179,34 +172,18 @@ void basicSequentialStateMachine(void *pvParameters)
 	}
 }
 
-char *bin_folder_path;
 void vSwapBuffers(void *pvParameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 	const TickType_t frameratePeriod = 20;
-	
-	vInitDrawing2(bin_folder_path);
-	SDL_EventState(SDL_WINDOWEVENT, SDL_IGNORE);
-	SDL_EventState(SDL_TEXTINPUT, SDL_IGNORE);
-	SDL_EventState(0x303, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
-	//startEvents();
-	//vInitEvents();
 
 	while (1) {
-		printf("TEST1\n");
 		xSemaphoreTake(ScreenLock, portMAX_DELAY);
-		printf("TEST2\n");
 		vDrawUpdateScreen();
-		printf("TEST3\n");
 		xSemaphoreGive(ScreenLock);
-		printf("TEST4\n");
 		xSemaphoreGive(DrawSignal);
-		printf("TEST5\n");
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(frameratePeriod));
-		printf("TEST6\n");
 	}
 }
 
@@ -219,7 +196,6 @@ void xGetButtonInput(void)
 
 void vDrawCaveBoundingBox(void)
 {
-	//printf("TEST2\n");
 	checkDraw(tumDrawFilledBox(CAVE_X - CAVE_THICKNESS,
 				   CAVE_Y - CAVE_THICKNESS,
 				   CAVE_SIZE_X + CAVE_THICKNESS * 2,
@@ -432,7 +408,6 @@ void vDemoTask1(void *pvParameters)
 {
 	while (1) {
 		if (DrawSignal)
-			//printf("TEST1\n");
 			if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
 			    pdTRUE) {
 				xGetButtonInput(); // Update global input
@@ -465,11 +440,8 @@ void vDemoTask2(void *pvParameters)
 	prevWakeTime = xLastWakeTime;
 
 	ball_t *my_ball = createBall(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, Black,
-				     20, 100, &playBallSound, NULL);
-	//ball_t *my_ball = createBall(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, Black,
-	//			     20, 1000, &playBallSound, NULL);
-	setBallSpeed(my_ball, 75, 25, 0, SET_BALL_SPEED_AXES);
-	//setBallSpeed(my_ball, 250, 250, 0, SET_BALL_SPEED_AXES);
+				     20, 1000, &playBallSound, NULL);
+	setBallSpeed(my_ball, 250, 250, 0, SET_BALL_SPEED_AXES);
 
 	// Left wall
 	wall_t *left_wall =
@@ -559,15 +531,12 @@ void vDemoTask2(void *pvParameters)
 	}
 }
 
-
 int main(int argc, char *argv[])
 {
-	setenv("LIBGL_ALWAYS_INDIRECT","1", 1);
-setenv("SDL_VIDEO_X11_VISUALID", "", 1);
-	bin_folder_path = getBinFolderPath(argv[0]);
+	char *bin_folder_path = getBinFolderPath(argv[0]);
 	printf("%s\n", bin_folder_path);
 
-	vInitDrawing2(bin_folder_path);
+	vInitDrawing(bin_folder_path);
 	vInitEvents();
 	//vInitAudio(bin_folder_path);
 
@@ -598,26 +567,21 @@ setenv("SDL_VIDEO_X11_VISUALID", "", 1);
 		    mainGENERIC_PRIORITY, &DemoTask2);
 
 	/** SOCKETS */
-//	xTaskCreate(vUDPDemoTask, "UDPTask", mainGENERIC_STACK_SIZE * 2, NULL,
-//		    configMAX_PRIORITIES - 1, &UDPDemoTask);
-//    xTaskCreate(vTCPDemoTask, "TCPTask", mainGENERIC_STACK_SIZE, NULL,
-//            configMAX_PRIORITIES - 1, &TCPDemoTask);
-//
-//	/** POSIX MESSAGE QUEUES */
-//    xTaskCreate(vMQDemoTask, "MQTask", mainGENERIC_STACK_SIZE * 2, NULL,
-//            configMAX_PRIORITIES - 1, &MQDemoTask);
-//	xTaskCreate(vDemoSendTask, "SendTask", mainGENERIC_STACK_SIZE * 2, NULL,
-//		    configMAX_PRIORITIES - 1, &DemoSendTask);
+	xTaskCreate(vUDPDemoTask, "UDPTask", mainGENERIC_STACK_SIZE * 2, NULL,
+		    configMAX_PRIORITIES - 1, &UDPDemoTask);
+    xTaskCreate(vTCPDemoTask, "TCPTask", mainGENERIC_STACK_SIZE, NULL,
+            configMAX_PRIORITIES - 1, &TCPDemoTask);
+
+	/** POSIX MESSAGE QUEUES */
+    xTaskCreate(vMQDemoTask, "MQTask", mainGENERIC_STACK_SIZE * 2, NULL,
+            configMAX_PRIORITIES - 1, &MQDemoTask);
+	xTaskCreate(vDemoSendTask, "SendTask", mainGENERIC_STACK_SIZE * 2, NULL,
+		    configMAX_PRIORITIES - 1, &DemoSendTask);
 
 	vTaskSuspend(DemoTask1);
 	vTaskSuspend(DemoTask2);
 
 	vTaskStartScheduler();
-	//struct timespec xTimeToSleep, xTimeSlept;
-	// Makes the process more agreeable when using the Posix simulator. */
-	//xTimeToSleep.tv_sec = 10;
-	//xTimeToSleep.tv_nsec = 0;
-	//nanosleep(&xTimeToSleep, &xTimeSlept);
 
 	return EXIT_SUCCESS;
 }
@@ -630,7 +594,7 @@ void vApplicationIdleHook(void)
 {
 #ifdef __GCC_POSIX__
 	struct timespec xTimeToSleep, xTimeSlept;
-	// Makes the process more agreeable when using the Posix simulator. */
+	/* Makes the process more agreeable when using the Posix simulator. */
 	xTimeToSleep.tv_sec = 1;
 	xTimeToSleep.tv_nsec = 0;
 	nanosleep(&xTimeToSleep, &xTimeSlept);

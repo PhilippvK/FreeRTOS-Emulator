@@ -114,6 +114,14 @@ signed short xGetMouseY(void)
 		return 0;
 }
 
+void startEvents(void) {
+	vTaskResume(eventTask);
+}
+
+void stopEvents(void) {
+	vTaskSuspend(eventTask);
+}
+
 void vInitEvents(void)
 {
 	initMouse();
@@ -123,11 +131,12 @@ void vInitEvents(void)
 
 	xTaskCreate(vEventsTask, "EventsTask", 100, NULL, tskIDLE_PRIORITY,
 		    &eventTask);
+	stopEvents();
 
 	// Ignore SDL events
-	SDL_EventState(SDL_WINDOWEVENT, SDL_IGNORE);
-	SDL_EventState(SDL_TEXTINPUT, SDL_IGNORE);
-	SDL_EventState(0x303, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
+	//SDL_EventState(SDL_WINDOWEVENT, SDL_IGNORE);
+	//SDL_EventState(SDL_TEXTINPUT, SDL_IGNORE);
+	//SDL_EventState(0x303, SDL_IGNORE);
+	//SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
+	//SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
 }

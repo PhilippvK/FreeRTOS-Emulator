@@ -121,6 +121,7 @@ char *tumGetErrorMessage(void);
  * @return NULL always returns NULL
  */
 void vInitDrawing(char *path);
+void vInitDrawing2(char *path);
 
 /**
  * @brief Exits the TUM Draw backend
@@ -329,6 +330,11 @@ signed char tumDrawArrow(unsigned short x1, unsigned short y1,
 			 unsigned short head_length, unsigned char thickness,
 			 unsigned int colour);
 
+
+int vDrawFilledRectangle(signed short x, signed short y, signed short w,
+				signed short h, unsigned int colour);
+
+void refresh(void);
 /**
  * @}
  */

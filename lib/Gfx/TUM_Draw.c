@@ -1,3 +1,5 @@
+#include <X11/Xlib.h> 
+#include "SDL2/SDL_syswm.h"
 /**
  * @file TUM_Draw.c
  * @author Alex Hoffman
@@ -166,6 +168,7 @@ const int screen_width = SCREEN_WIDTH;
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
+SDL_GLContext _glContextId = 0;
 TTF_Font *font = NULL;
 
 char *error_message = NULL;
@@ -248,7 +251,8 @@ static int vDrawRectangle(signed short x, signed short y, signed short w,
 	return 0;
 }
 
-static int vDrawFilledRectangle(signed short x, signed short y, signed short w,
+//static int vDrawFilledRectangle(signed short x, signed short y, signed short w,
+int vDrawFilledRectangle(signed short x, signed short y, signed short w,
 				signed short h, unsigned int colour)
 {
 	boxColor(renderer, x + w, y, x, y + h, SwapBytes((colour << 8) | 0xFF));
@@ -485,67 +489,82 @@ static int vDrawArrow(unsigned short x1, unsigned short y1, unsigned short x2,
 
 static int vHandleDrawJob(draw_job_t *job)
 {
+	printf("TEST26\n");
 	int ret = 0;
 	if (!job)
 		return -1;
+	printf("TEST27\n");
 
 	assert(job->data);
+	printf("TEST28\n");
 
 	switch (job->type) {
 	case DRAW_CLEAR:
+		printf("TESTCLEAR\n");
 		ret = vClearDisplay(job->data->clear.colour);
 		break;
 	case DRAW_ARC:
+		printf("TESTARC\n");
 		ret = vDrawArc(job->data->arc.x, job->data->arc.y,
 			       job->data->arc.radius, job->data->arc.start,
 			       job->data->arc.end, job->data->arc.colour);
 		break;
 	case DRAW_ELLIPSE:
+		printf("TESTELLIPSE\n");
 		ret = vDrawEllipse(job->data->ellipse.x, job->data->ellipse.y,
 				   job->data->ellipse.rx, job->data->ellipse.ry,
 				   job->data->ellipse.colour);
 		break;
 	case DRAW_TEXT:
+		printf("TESTTEXT\n");
 		ret = vDrawText(job->data->text.str, job->data->text.x,
 				job->data->text.y, job->data->text.colour);
 		free(job->data->text.str);
 		break;
 	case DRAW_RECT:
+		printf("TESTRECT\n");
 		ret = vDrawRectangle(job->data->rect.x, job->data->rect.y,
 				     job->data->rect.w, job->data->rect.h,
 				     job->data->rect.colour);
 		break;
+		printf("TESTFRECT\n");
 	case DRAW_FILLED_RECT:
 		ret = vDrawFilledRectangle(job->data->rect.x, job->data->rect.y,
 					   job->data->rect.w, job->data->rect.h,
 					   job->data->rect.colour);
 		break;
 	case DRAW_CIRCLE:
+		printf("TESTCIRC\n");
 		ret = vDrawCircle(job->data->circle.x, job->data->circle.y,
 				  job->data->circle.radius,
 				  job->data->circle.colour);
 		break;
 	case DRAW_LINE:
+		printf("TESTLINE\n");
 		ret = vDrawLine(job->data->line.x1, job->data->line.y1,
 				job->data->line.x2, job->data->line.y2,
 				job->data->line.thickness,
 				job->data->line.colour);
 		break;
 	case DRAW_POLY:
+		printf("TESTPOLY\n");
 		ret = vDrawPoly(job->data->poly.points, job->data->poly.n,
 				job->data->poly.colour);
 		break;
 	case DRAW_TRIANGLE:
+		printf("TESTTRI\n");
 		ret = vDrawTriangle(job->data->triangle.points,
 				    job->data->triangle.colour);
 		break;
 	case DRAW_IMAGE:
+		printf("TESTIMG\n");
 		job->data->image.tex =
 			loadImage(job->data->image.filename, renderer);
 		ret = vDrawImage(job->data->image.tex, renderer,
 				 job->data->image.x, job->data->image.y);
 		break;
 	case DRAW_SCALED_IMAGE:
+		printf("TESTSCALED\n");
 		job->data->scaled_image.image.tex = loadImage(
 			job->data->scaled_image.image.filename, renderer);
 		ret = vDrawScaledImage(job->data->scaled_image.image.tex,
@@ -555,6 +574,7 @@ static int vHandleDrawJob(draw_job_t *job)
 				       job->data->scaled_image.scale);
 		break;
 	case DRAW_ARROW:
+		printf("TESTARROW\n");
 		ret = vDrawArrow(job->data->arrow.x1, job->data->arrow.y1,
 				 job->data->arrow.x2, job->data->arrow.y2,
 				 job->data->arrow.head_length,
@@ -564,6 +584,7 @@ static int vHandleDrawJob(draw_job_t *job)
 		break;
 	}
 	free(job->data);
+	printf("TEST29\n");
 
 	return ret;
 }
@@ -582,36 +603,174 @@ static void logCriticalError(char *msg)
 	exit(-1);
 }
 
-#pragma mark - public
+//#pragma mark - public
 
 void vDrawUpdateScreen(void)
 {
-	if (!job_list_head.next) {
-		goto done;
-	}
 
-	draw_job_t *tmp_job;
+		printf("TEST21\n");
+		if (!job_list_head.next) {
+			goto done;
+		}
+		printf("TEST22\n");
 
-	while ((tmp_job = popDrawJob()) != NULL) {
-		assert(tmp_job->data);
-		if (vHandleDrawJob(tmp_job) == -1)
-			goto draw_error;
+		draw_job_t *tmp_job;
+
+		while ((tmp_job = popDrawJob()) != NULL) {
+			printf("TEST23\n");
+			assert(tmp_job->data);
+			if (vHandleDrawJob(tmp_job) == -1)
+				goto draw_error;
+			free(tmp_job);
+		}
+		printf("TEST24\n");
+
+		SDL_RenderPresent(renderer);
+
+	done:
+		printf("TEST25\n");
+		return;
+
+	draw_error:
 		free(tmp_job);
-	}
-
-	SDL_RenderPresent(renderer);
-
-done:
-	return;
-
-draw_error:
-	free(tmp_job);
-	goto done;
+		goto done;
+            //render();
+        //}
 }
 
 char *tumGetErrorMessage(void)
 {
 	return error_message;
+}
+
+void vInitDrawing2(char *path)
+{
+	int ret = 0;
+	int i;
+	static char first = 1;
+
+	if (first) {
+		first = 0;
+		if (SDL_Init(SDL_INIT_VIDEO) != 0){
+		//if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
+			fprintf(stderr, "[ERROR] SDL_Init failed: %s\n",SDL_GetError());
+    			exit(EXIT_FAILURE);
+		}
+		//SDL_Init(SDL_INIT_VIDEO);
+		TTF_Init();
+
+		bin_folder = malloc(sizeof(char) * (strlen(path) + 1));
+		if (!bin_folder) {
+			fprintf(stderr, "[ERROR] bin folder malloc failed\n");
+			exit(EXIT_FAILURE);
+		}
+		strcpy(bin_folder, path);
+
+		char *buffer = prepend_path(path, FONT_LOCATION);
+
+		font = TTF_OpenFont(buffer, DEFAULT_FONT_SIZE);
+		if (!font)
+			logSDLTTFError("vInitDrawing->OpenFont");
+
+		free(buffer);
+
+
+		window = SDL_CreateWindow("FreeRTOS Simulator", SDL_WINDOWPOS_CENTERED,
+					  SDL_WINDOWPOS_CENTERED, screen_width,
+					  //screen_height, SDL_WINDOW_OPENGL);
+					  screen_height, 0);
+
+		if (!window) {
+			logSDLError("vInitDrawing->CreateWindow");
+			SDL_Quit();
+			exit(-1);
+		}
+
+		_glContextId = SDL_GL_CreateContext(window);
+	        if (!_glContextId)
+        	    logSDLError("Failed to create GL context: ");
+
+		if (SDL_GL_MakeCurrent(window, _glContextId) < 0)
+                   logSDLError("Failed to make GL context current: ");
+	} else {
+
+		if (SDL_GL_MakeCurrent(window, _glContextId) < 0)
+	                logSDLError("Failed to make GL context current: ");
+		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+		if (renderer == NULL){
+		        SDL_DestroyWindow(window);
+		        logSDLError("SDL_CreateRenderer Error: ");
+		        SDL_Quit();
+		 }
+		SDL_RenderClear(renderer);
+
+	}
+
+//	renderer = SDL_CreateRenderer(window, -1,
+//				      SDL_RENDERER_ACCELERATED |
+//					      SDL_RENDERER_TARGETTEXTURE);
+
+	//renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+	//if (!renderer) {
+	//	logSDLError("vInitDrawing->CreateRenderer");
+	//	SDL_DestroyWindow(window);
+	//	SDL_Quit();
+	//	exit(-1);
+	//}
+
+	//SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
+
+//	ret = vDrawRectangle(10, 20,
+//			     30, 40,
+//			     Red);
+
+//	if (ret) {
+//		logSDLError("RET");
+//	}
+	//SDL_RenderClear(renderer);
+
+/*	char imagePath[] = "lena_gray.bmp";
+    SDL_Surface *bmp = SDL_LoadBMP(imagePath);
+    if (bmp == NULL){
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+	logSDLError("SDL_LoadBMP Error");
+        SDL_Quit();
+        exit(-1);
+    }
+
+    SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, bmp);
+    SDL_FreeSurface(bmp);
+    if (tex == NULL){
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+	logSDLError("SDL_CreateTextureFromSurface Error");
+        //std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+        SDL_Quit();
+        exit(-1);
+    }
+
+    //A sleepy rendering loop, wait for 3 seconds and render and present the screen each time
+    for ( i = 0; i < 3; ++i){
+        //First clear the renderer
+        SDL_RenderClear(renderer);
+        //Draw the texture
+        SDL_RenderCopy(renderer, tex, NULL, NULL);
+	//vDrawFilledRectangle(10,20,30,40,Red);
+        //Update the screen
+        SDL_RenderPresent(renderer);
+        //Take a quick break after all that hard work
+        SDL_Delay(1000);
+    }
+
+    SDL_Delay(2000);
+*/
+	atexit(SDL_Quit);
+}
+
+void refresh(void) {
+	SDL_RenderPresent(renderer);	
 }
 
 void vInitDrawing(char *path)
