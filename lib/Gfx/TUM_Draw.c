@@ -668,7 +668,7 @@ void vInitDrawing2(char *path)
 
 		window = SDL_CreateWindow("FreeRTOS Simulator", SDL_WINDOWPOS_CENTERED,
 					  SDL_WINDOWPOS_CENTERED, screen_width,
-					  screen_height, SDL_WINDOW_OPENGL);
+					  screen_height, SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN);
 					  //screen_height, 0);
 
 		if (!window) {

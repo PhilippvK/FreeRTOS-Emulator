@@ -161,15 +161,15 @@ void basicSequentialStateMachine(void *pvParameters)
 			switch (current_state) {
 			case STATE_ONE:
 				if (DemoTask2)
-					vTaskSuspend(DemoTask2);
+					vTaskSuspend(DemoTask1);
 				if (DemoTask1)
-					vTaskResume(DemoTask1);
+					vTaskResume(DemoTask2);
 				break;
 			case STATE_TWO:
 				if (DemoTask1)
-					vTaskSuspend(DemoTask1);
+					vTaskSuspend(DemoTask2);
 				if (DemoTask2)
-					vTaskResume(DemoTask2);
+					vTaskResume(DemoTask1);
 				break;
 			default:
 				break;
@@ -192,7 +192,7 @@ void vSwapBuffers(void *pvParameters)
 	SDL_EventState(0x303, SDL_IGNORE);
 	SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
 	SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
-	startEvents();
+	//startEvents();
 	//vInitEvents();
 
 	while (1) {
