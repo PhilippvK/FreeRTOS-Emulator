@@ -71,5 +71,7 @@ signed short xGetMouseY(void);
  */
 extern QueueHandle_t inputQueue;
 
+void fetchEvents(void);
+
 /** @} */
 #endif

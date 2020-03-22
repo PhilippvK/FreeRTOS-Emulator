@@ -489,82 +489,79 @@ static int vDrawArrow(unsigned short x1, unsigned short y1, unsigned short x2,
 
 static int vHandleDrawJob(draw_job_t *job)
 {
-	printf("TEST26\n");
 	int ret = 0;
 	if (!job)
 		return -1;
-	printf("TEST27\n");
 
 	assert(job->data);
-	printf("TEST28\n");
 
 	switch (job->type) {
 	case DRAW_CLEAR:
-		printf("TESTCLEAR\n");
+		//printf("TESTCLEAR\n");
 		ret = vClearDisplay(job->data->clear.colour);
 		break;
 	case DRAW_ARC:
-		printf("TESTARC\n");
+		//printf("TESTARC\n");
 		ret = vDrawArc(job->data->arc.x, job->data->arc.y,
 			       job->data->arc.radius, job->data->arc.start,
 			       job->data->arc.end, job->data->arc.colour);
 		break;
 	case DRAW_ELLIPSE:
-		printf("TESTELLIPSE\n");
+		//printf("TESTELLIPSE\n");
 		ret = vDrawEllipse(job->data->ellipse.x, job->data->ellipse.y,
 				   job->data->ellipse.rx, job->data->ellipse.ry,
 				   job->data->ellipse.colour);
 		break;
 	case DRAW_TEXT:
-		printf("TESTTEXT\n");
+		//printf("TESTTEXT\n");
 		ret = vDrawText(job->data->text.str, job->data->text.x,
 				job->data->text.y, job->data->text.colour);
 		free(job->data->text.str);
 		break;
 	case DRAW_RECT:
-		printf("TESTRECT\n");
+		//printf("TESTRECT\n");
 		ret = vDrawRectangle(job->data->rect.x, job->data->rect.y,
 				     job->data->rect.w, job->data->rect.h,
 				     job->data->rect.colour);
 		break;
-		printf("TESTFRECT\n");
+		//printf("TESTFRECT\n");
 	case DRAW_FILLED_RECT:
 		ret = vDrawFilledRectangle(job->data->rect.x, job->data->rect.y,
 					   job->data->rect.w, job->data->rect.h,
 					   job->data->rect.colour);
 		break;
 	case DRAW_CIRCLE:
-		printf("TESTCIRC\n");
+		//printf("TESTCIRC\n");
 		ret = vDrawCircle(job->data->circle.x, job->data->circle.y,
 				  job->data->circle.radius,
 				  job->data->circle.colour);
 		break;
 	case DRAW_LINE:
-		printf("TESTLINE\n");
+		//printf("TESTLINE\n");
 		ret = vDrawLine(job->data->line.x1, job->data->line.y1,
 				job->data->line.x2, job->data->line.y2,
 				job->data->line.thickness,
 				job->data->line.colour);
 		break;
 	case DRAW_POLY:
-		printf("TESTPOLY\n");
+		//printf("TESTPOLY\n");
 		ret = vDrawPoly(job->data->poly.points, job->data->poly.n,
 				job->data->poly.colour);
 		break;
 	case DRAW_TRIANGLE:
-		printf("TESTTRI\n");
+		//printf("TESTTRI\n");
 		ret = vDrawTriangle(job->data->triangle.points,
 				    job->data->triangle.colour);
 		break;
 	case DRAW_IMAGE:
-		printf("TESTIMG\n");
+		//printf("TESTIMG\n");
 		job->data->image.tex =
 			loadImage(job->data->image.filename, renderer);
 		ret = vDrawImage(job->data->image.tex, renderer,
 				 job->data->image.x, job->data->image.y);
 		break;
 	case DRAW_SCALED_IMAGE:
-		printf("TESTSCALED\n");
+		//printf("TESTSCALED\n");
 		job->data->scaled_image.image.tex = loadImage(
 			job->data->scaled_image.image.filename, renderer);
 		ret = vDrawScaledImage(job->data->scaled_image.image.tex,
@@ -574,7 +571,7 @@ static int vHandleDrawJob(draw_job_t *job)
 				       job->data->scaled_image.scale);
 		break;
 	case DRAW_ARROW:
-		printf("TESTARROW\n");
+		//printf("TESTARROW\n");
 		ret = vDrawArrow(job->data->arrow.x1, job->data->arrow.y1,
 				 job->data->arrow.x2, job->data->arrow.y2,
 				 job->data->arrow.head_length,
@@ -584,7 +581,7 @@ static int vHandleDrawJob(draw_job_t *job)
 		break;
 	}
 	free(job->data);
-	printf("TEST29\n");
+	//printf("TEST29\n");
 
 	return ret;
 }
@@ -608,27 +605,27 @@ static void logCriticalError(char *msg)
 void vDrawUpdateScreen(void)
 {
 
-		printf("TEST21\n");
+		//printf("TEST21\n");
 		if (!job_list_head.next) {
 			goto done;
 		}
-		printf("TEST22\n");
+		//printf("TEST22\n");
 
 		draw_job_t *tmp_job;
 
 		while ((tmp_job = popDrawJob()) != NULL) {
-			printf("TEST23\n");
+			//printf("TEST23\n");
 			assert(tmp_job->data);
 			if (vHandleDrawJob(tmp_job) == -1)
 				goto draw_error;
 			free(tmp_job);
 		}
-		printf("TEST24\n");
+		//printf("TEST24\n");
 
 		SDL_RenderPresent(renderer);
 
 	done:
-		printf("TEST25\n");
+		//printf("TEST25\n");
 		return;
 
 	draw_error:
@@ -651,7 +648,7 @@ void vInitDrawing2(char *path)
 
 	if (first) {
 		first = 0;
-		if (SDL_Init(SDL_INIT_VIDEO) != 0){
+		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0){
 		//if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
 			fprintf(stderr, "[ERROR] SDL_Init failed: %s\n",SDL_GetError());
     			exit(EXIT_FAILURE);
@@ -677,8 +674,8 @@ void vInitDrawing2(char *path)
 
 		window = SDL_CreateWindow("FreeRTOS Simulator", SDL_WINDOWPOS_CENTERED,
 					  SDL_WINDOWPOS_CENTERED, screen_width,
-					  //screen_height, SDL_WINDOW_OPENGL);
-					  screen_height, 0);
+					  screen_height, SDL_WINDOW_OPENGL);
+					  //screen_height, 0);
 
 		if (!window) {
 			logSDLError("vInitDrawing->CreateWindow");
@@ -692,6 +689,8 @@ void vInitDrawing2(char *path)
 
 		if (SDL_GL_MakeCurrent(window, _glContextId) < 0)
                    logSDLError("Failed to make GL context current: ");
+		if (SDL_GL_MakeCurrent(window, NULL) < 0)
+                   logSDLError("Failed to make GL context NOT current: ");
 	} else {
 
 		if (SDL_GL_MakeCurrent(window, _glContextId) < 0)

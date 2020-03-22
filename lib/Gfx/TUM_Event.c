@@ -47,6 +47,37 @@ void initMouse(void)
 	assert(mouse.lock);
 }
 
+void fetchEvents(void) {
+	SDL_Event event = { 0 };
+	unsigned char buttons[SDL_NUM_SCANCODES] = { 0 };
+	unsigned char send = 0;
+
+	while (SDL_PollEvent(&event)) {
+		if ((event.type == SDL_QUIT) ||
+		    (event.key.keysym.scancode == SDL_SCANCODE_Q)) {
+			vExitDrawing();
+		} else if (event.type == SDL_KEYDOWN) {
+			buttons[event.key.keysym.scancode] = 1;
+			send = 1;
+		} else if (event.type == SDL_KEYUP) {
+			buttons[event.key.keysym.scancode] = 0;
+			send = 1;
+		} else if (event.type == SDL_MOUSEMOTION) {
+			xSemaphoreTake(mouse.lock, 0);
+			mouse.x = event.motion.x;
+			mouse.y = event.motion.y;
+			xSemaphoreGive(mouse.lock);
+		} else {
+			;
+		}
+	}
+
+	if (send) {
+		xQueueOverwrite(inputQueue, &buttons);
+		send = 0;
+	}
+}
+
 void vEventsTask(void *pvParameters)
 {
 	portTickType xLastWakeTime;

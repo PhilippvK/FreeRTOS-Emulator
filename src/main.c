@@ -161,15 +161,15 @@ void basicSequentialStateMachine(void *pvParameters)
 			switch (current_state) {
 			case STATE_ONE:
 				if (DemoTask2)
-					vTaskSuspend(DemoTask1);
+					vTaskSuspend(DemoTask2);
 				if (DemoTask1)
-					vTaskResume(DemoTask2);
+					vTaskResume(DemoTask1);
 				break;
 			case STATE_TWO:
 				if (DemoTask1)
-					vTaskSuspend(DemoTask2);
+					vTaskSuspend(DemoTask1);
 				if (DemoTask2)
-					vTaskResume(DemoTask1);
+					vTaskResume(DemoTask2);
 				break;
 			default:
 				break;
@@ -184,29 +184,30 @@ void vSwapBuffers(void *pvParameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
-	const TickType_t frameratePeriod = 20;
+	const TickType_t frameratePeriod = 10;
 	
 	vInitDrawing2(bin_folder_path);
-	SDL_EventState(SDL_WINDOWEVENT, SDL_IGNORE);
-	SDL_EventState(SDL_TEXTINPUT, SDL_IGNORE);
-	SDL_EventState(0x303, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
+	//SDL_EventState(SDL_WINDOWEVENT, SDL_IGNORE);
+	//SDL_EventState(SDL_TEXTINPUT, SDL_IGNORE);
+	//SDL_EventState(0x303, SDL_IGNORE);
+	//SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
+	//SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
 	//startEvents();
 	//vInitEvents();
 
 	while (1) {
-		printf("TEST1\n");
+		//printf("TEST1\n");
 		xSemaphoreTake(ScreenLock, portMAX_DELAY);
-		printf("TEST2\n");
+		//printf("TEST2\n");
+		fetchEvents();
 		vDrawUpdateScreen();
-		printf("TEST3\n");
+		//printf("TEST3\n");
 		xSemaphoreGive(ScreenLock);
-		printf("TEST4\n");
+		//printf("TEST4\n");
 		xSemaphoreGive(DrawSignal);
-		printf("TEST5\n");
+		//printf("TEST5\n");
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(frameratePeriod));
-		printf("TEST6\n");
+		//printf("TEST6\n");
 	}
 }
 
@@ -465,10 +466,10 @@ void vDemoTask2(void *pvParameters)
 	prevWakeTime = xLastWakeTime;
 
 	ball_t *my_ball = createBall(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, Black,
-				     20, 100, &playBallSound, NULL);
+				     20, 500, &playBallSound, NULL);
 	//ball_t *my_ball = createBall(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, Black,
 	//			     20, 1000, &playBallSound, NULL);
-	setBallSpeed(my_ball, 75, 25, 0, SET_BALL_SPEED_AXES);
+	setBallSpeed(my_ball, 100, 200, 0, SET_BALL_SPEED_AXES);
 	//setBallSpeed(my_ball, 250, 250, 0, SET_BALL_SPEED_AXES);
 
 	// Left wall
@@ -554,6 +555,8 @@ void vDemoTask2(void *pvParameters)
 				// Keep track of when task last ran so that you know how many ticks
 				//(in our case miliseconds) have passed so that the balls position
 				// can be updated appropriatley
+				if (prevWakeTime != xLastWakeTime)
+					printf("FPS: %d\n",1000/(xLastWakeTime-prevWakeTime));
 				prevWakeTime = xLastWakeTime;
 			}
 	}
@@ -562,8 +565,8 @@ void vDemoTask2(void *pvParameters)
 
 int main(int argc, char *argv[])
 {
-	setenv("LIBGL_ALWAYS_INDIRECT","1", 1);
-setenv("SDL_VIDEO_X11_VISUALID", "", 1);
+	//setenv("LIBGL_ALWAYS_INDIRECT","1", 1);
+//setenv("SDL_VIDEO_X11_VISUALID", "", 1);
 	bin_folder_path = getBinFolderPath(argv[0]);
 	printf("%s\n", bin_folder_path);
 
