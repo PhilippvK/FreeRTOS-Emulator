@@ -184,14 +184,14 @@ void vSwapBuffers(void *pvParameters)
 {
 	TickType_t xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
-	const TickType_t frameratePeriod = 10;
+	const TickType_t frameratePeriod = 20;
 	
 	vInitDrawing2(bin_folder_path);
-	//SDL_EventState(SDL_WINDOWEVENT, SDL_IGNORE);
-	//SDL_EventState(SDL_TEXTINPUT, SDL_IGNORE);
-	//SDL_EventState(0x303, SDL_IGNORE);
-	//SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
-	//SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
+	SDL_EventState(SDL_WINDOWEVENT, SDL_IGNORE);
+	SDL_EventState(SDL_TEXTINPUT, SDL_IGNORE);
+	SDL_EventState(0x303, SDL_IGNORE);
+	SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
+	SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
 	//startEvents();
 	//vInitEvents();
 
@@ -255,6 +255,20 @@ void vDrawHelpText(void)
 
 	checkDraw(tumDrawText(str, SCREEN_WIDTH - text_width - 10,
 			      DEFAULT_FONT_SIZE * 0.5, Black),
+		  __FUNCTION__);
+}
+
+void vDrawFPS(int fps)
+{
+	static char str[10] = { 0 };
+	static int text_width;
+
+	sprintf(str, "FPS: %2d",fps);
+
+	tumGetTextSize((char *)str, &text_width, NULL);
+
+	checkDraw(tumDrawText(str, SCREEN_WIDTH - text_width - 10,
+			     SCREEN_HEIGHT - DEFAULT_FONT_SIZE * 1.5, Blue),
 		  __FUNCTION__);
 }
 
@@ -380,8 +394,8 @@ void vDemoSendTask(void *pvParameters)
         if(mq_two)
             aIOMessageQueuePut(mq_two_name, "Hello MQ two");
 
-		if (udp_soc_one)
-			assert(!aIOSocketPut(UDP, NULL, UDP_TEST_PORT_1,
+		if (udp_soc_one) // TODO: fix?
+	assert(!aIOSocketPut(UDP, NULL, UDP_TEST_PORT_1,
 					     test_str_1, strlen(test_str_1)));
         if (udp_soc_two)
             assert(!aIOSocketPut(UDP, NULL, UDP_TEST_PORT_2,
@@ -462,6 +476,7 @@ void playBallSound(void *args)
 void vDemoTask2(void *pvParameters)
 {
 	TickType_t xLastWakeTime, prevWakeTime;
+	int fps = 0;
 	xLastWakeTime = xTaskGetTickCount();
 	prevWakeTime = xLastWakeTime;
 
@@ -546,17 +561,23 @@ void vDemoTask2(void *pvParameters)
 							my_ball->radius,
 							my_ball->colour),
 					  __FUNCTION__);
+				vDrawFPS(fps);
 
 				xSemaphoreGive(ScreenLock);
 
 				// Check for state change
 				vCheckStateInput();
+				
 
 				// Keep track of when task last ran so that you know how many ticks
 				//(in our case miliseconds) have passed so that the balls position
 				// can be updated appropriatley
-				if (prevWakeTime != xLastWakeTime)
-					printf("FPS: %d\n",1000/(xLastWakeTime-prevWakeTime));
+				if (prevWakeTime != xLastWakeTime) {
+					fps = configTICK_RATE_HZ/(xLastWakeTime-prevWakeTime);
+				} else {
+					fps = 0;
+				}
+
 				prevWakeTime = xLastWakeTime;
 			}
 	}
@@ -565,8 +586,8 @@ void vDemoTask2(void *pvParameters)
 
 int main(int argc, char *argv[])
 {
-	//setenv("LIBGL_ALWAYS_INDIRECT","1", 1);
-//setenv("SDL_VIDEO_X11_VISUALID", "", 1);
+	setenv("LIBGL_ALWAYS_INDIRECT","1", 1);
+	setenv("SDL_VIDEO_X11_VISUALID", "", 1);
 	bin_folder_path = getBinFolderPath(argv[0]);
 	printf("%s\n", bin_folder_path);
 
@@ -601,12 +622,12 @@ int main(int argc, char *argv[])
 		    mainGENERIC_PRIORITY, &DemoTask2);
 
 	/** SOCKETS */
-//	xTaskCreate(vUDPDemoTask, "UDPTask", mainGENERIC_STACK_SIZE * 2, NULL,
-//		    configMAX_PRIORITIES - 1, &UDPDemoTask);
-//    xTaskCreate(vTCPDemoTask, "TCPTask", mainGENERIC_STACK_SIZE, NULL,
-//            configMAX_PRIORITIES - 1, &TCPDemoTask);
-//
-//	/** POSIX MESSAGE QUEUES */
+	xTaskCreate(vUDPDemoTask, "UDPTask", mainGENERIC_STACK_SIZE * 2, NULL,
+		    configMAX_PRIORITIES - 1, &UDPDemoTask);
+    xTaskCreate(vTCPDemoTask, "TCPTask", mainGENERIC_STACK_SIZE, NULL,
+            configMAX_PRIORITIES - 1, &TCPDemoTask);
+
+	/** POSIX MESSAGE QUEUES */
 //    xTaskCreate(vMQDemoTask, "MQTask", mainGENERIC_STACK_SIZE * 2, NULL,
 //            configMAX_PRIORITIES - 1, &MQDemoTask);
 //	xTaskCreate(vDemoSendTask, "SendTask", mainGENERIC_STACK_SIZE * 2, NULL,
@@ -631,7 +652,7 @@ void vMainQueueSendPassed(void)
 
 void vApplicationIdleHook(void)
 {
-#ifdef __GCC_POSIX__
+#ifdef __GCC_POSIX__ // TODO: DOes this work
 	struct timespec xTimeToSleep, xTimeSlept;
 	// Makes the process more agreeable when using the Posix simulator. */
 	xTimeToSleep.tv_sec = 1;
