@@ -25,6 +25,7 @@ DIRECTORY := $(strip $(shell "dirname" $(realpath $(lastword $(MAKEFILE_LIST))))
 ifeq ($(HOST_OS),win)
 	EXPORT := $$env:DIR='$(DIRECTORY)/..'
 	PREPARE :=
+	DESTROY :=
 endif
 ifeq ($(HOST_OS),osx)
 	EXPORT := export DIR='$(DIRECTORY)/..'
@@ -32,7 +33,8 @@ ifeq ($(HOST_OS),osx)
 endif
 ifeq ($(HOST_OS),unix)
 	EXPORT := export DIR='$(DIRECTORY)/..'
-	PREPARE :=
+	PREPARE := xhost +local:root
+	DESTROY := xhost -local:root
 endif
 
 .PHONY: run
@@ -40,6 +42,7 @@ run: compile prepare
 	@echo "Running Executable in Container..."
 	@$(EXPORT) ; '$(COMPOSE)' -f $(YML) exec $(EMULATOR) bash -c "cd /tmp/project/bin ; ./$(EXECUTABLE)"
 	@echo Finished with RC=$$?
+	@$(DESTROY)
 
 PHONY: prepare
 prepare:
@@ -74,6 +77,7 @@ debug: compile prepare
 	@echo "Starting Debug Session..."
 	@$(EXPORT) ; '$(COMPOSE)' -f $(YML) exec $(EMULATOR) bash -c "cd /tmp/project/bin && gdb -q -tui -n -x .gdbinit -ex 'break main' -ex 'winheight src 20' -ex 'run' $(EXECUTABLE)"
 	@echo Finished with RC=$$?
+	@$(DESTROY)
 
 .PHONY: clean
 clean: start
