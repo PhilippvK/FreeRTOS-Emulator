@@ -186,7 +186,7 @@ void vSwapBuffers(void *pvParameters)
 	xLastWakeTime = xTaskGetTickCount();
 	const TickType_t frameratePeriod = 10;
 	
-	vInitDrawing2(bin_folder_path);
+	vInitDrawing(bin_folder_path);
 	//SDL_EventState(SDL_WINDOWEVENT, SDL_IGNORE);
 	//SDL_EventState(SDL_TEXTINPUT, SDL_IGNORE);
 	//SDL_EventState(0x303, SDL_IGNORE);
@@ -565,12 +565,10 @@ void vDemoTask2(void *pvParameters)
 
 int main(int argc, char *argv[])
 {
-	//setenv("LIBGL_ALWAYS_INDIRECT","1", 1);
-//setenv("SDL_VIDEO_X11_VISUALID", "", 1);
 	bin_folder_path = getBinFolderPath(argv[0]);
 	printf("%s\n", bin_folder_path);
 
-	vInitDrawing2(bin_folder_path);
+	vInitDrawing(bin_folder_path);
 	vInitEvents();
 	//vInitAudio(bin_folder_path);
 

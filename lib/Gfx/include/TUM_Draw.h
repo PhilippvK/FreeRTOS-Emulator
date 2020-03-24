@@ -121,7 +121,6 @@ char *tumGetErrorMessage(void);
  * @return NULL always returns NULL
  */
 void vInitDrawing(char *path);
-void vInitDrawing2(char *path);
 
 /**
  * @brief Exits the TUM Draw backend

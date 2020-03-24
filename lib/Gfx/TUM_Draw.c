@@ -640,20 +640,26 @@ char *tumGetErrorMessage(void)
 	return error_message;
 }
 
-void vInitDrawing2(char *path)
+void vInitDrawing(char *path)
 {
 	int ret = 0;
 	int i;
 	static char first = 1;
 
 	if (first) {
+#ifndef HOST_OS
+#warning "HOST_OS undefined! Assuming 'unix'..."
+#elif HOST_OS != unix
+    	setenv("LIBGL_ALWAYS_INDIRECT","1", 1);
+      setenv("SDL_VIDEO_X11_VISUALID", "", 1);
+#else
+#error "Unexpected value of HOST_OS!"
+#endif
 		first = 0;
 		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0){
-		//if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
 			fprintf(stderr, "[ERROR] SDL_Init failed: %s\n",SDL_GetError());
     			exit(EXIT_FAILURE);
 		}
-		//SDL_Init(SDL_INIT_VIDEO);
 		TTF_Init();
 
 		bin_folder = malloc(sizeof(char) * (strlen(path) + 1));
@@ -675,7 +681,6 @@ void vInitDrawing2(char *path)
 		window = SDL_CreateWindow("FreeRTOS Simulator", SDL_WINDOWPOS_CENTERED,
 					  SDL_WINDOWPOS_CENTERED, screen_width,
 					  screen_height, SDL_WINDOW_OPENGL);
-					  //screen_height, 0);
 
 		if (!window) {
 			logSDLError("vInitDrawing->CreateWindow");
@@ -705,66 +710,6 @@ void vInitDrawing2(char *path)
 
 	}
 
-//	renderer = SDL_CreateRenderer(window, -1,
-//				      SDL_RENDERER_ACCELERATED |
-//					      SDL_RENDERER_TARGETTEXTURE);
-
-	//renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
-	//if (!renderer) {
-	//	logSDLError("vInitDrawing->CreateRenderer");
-	//	SDL_DestroyWindow(window);
-	//	SDL_Quit();
-	//	exit(-1);
-	//}
-
-	//SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
-
-//	ret = vDrawRectangle(10, 20,
-//			     30, 40,
-//			     Red);
-
-//	if (ret) {
-//		logSDLError("RET");
-//	}
-	//SDL_RenderClear(renderer);
-
-/*	char imagePath[] = "lena_gray.bmp";
-    SDL_Surface *bmp = SDL_LoadBMP(imagePath);
-    if (bmp == NULL){
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-	logSDLError("SDL_LoadBMP Error");
-        SDL_Quit();
-        exit(-1);
-    }
-
-    SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, bmp);
-    SDL_FreeSurface(bmp);
-    if (tex == NULL){
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-	logSDLError("SDL_CreateTextureFromSurface Error");
-        //std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        exit(-1);
-    }
-
-    //A sleepy rendering loop, wait for 3 seconds and render and present the screen each time
-    for ( i = 0; i < 3; ++i){
-        //First clear the renderer
-        SDL_RenderClear(renderer);
-        //Draw the texture
-        SDL_RenderCopy(renderer, tex, NULL, NULL);
-	//vDrawFilledRectangle(10,20,30,40,Red);
-        //Update the screen
-        SDL_RenderPresent(renderer);
-        //Take a quick break after all that hard work
-        SDL_Delay(1000);
-    }
-
-    SDL_Delay(2000);
-*/
 	atexit(SDL_Quit);
 }
 
@@ -772,7 +717,7 @@ void refresh(void) {
 	SDL_RenderPresent(renderer);	
 }
 
-void vInitDrawing(char *path)
+void vInitDrawing_old(char *path)
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	TTF_Init();

@@ -50,4 +50,5 @@ target_link_libraries(FreeRTOS_Emulator ${SDL2_LIBRARIES} ${SDL2_GFX_LIBRARIES}
     ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES}
     m ${CMAKE_THREAD_LIBS_INIT} rt)
 
+add_compile_definitions(HOST_OS=${HOST_OS})
 
