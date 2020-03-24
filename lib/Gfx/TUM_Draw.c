@@ -650,8 +650,10 @@ void vInitDrawing(char *path)
 #ifndef HOST_OS
 #warning "HOST_OS undefined! Assuming 'unix'..."
 #elif HOST_OS != unix
-    	setenv("LIBGL_ALWAYS_INDIRECT","1", 1);
-      setenv("SDL_VIDEO_X11_VISUALID", "", 1);
+	setenv("LIBGL_ALWAYS_INDIRECT","1", 1);
+	setenv("SDL_VIDEO_X11_VISUALID", "", 1);
+#elif HOST_OS == unix
+	// nothing
 #else
 #error "Unexpected value of HOST_OS!"
 #endif
