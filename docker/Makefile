@@ -59,8 +59,8 @@ endif
 .PHONY: up
 up: docker
 	@$(eval COUNT=$(shell $(EXPORT) ; '$(COMPOSE)' -f $(YML) ps | grep '$(REPO)_$(EMULATOR)' | wc -l))
-	@test $(COUNT) == 0 || : && (echo "Creating Container..." ; $(EXPORT) ;'$(COMPOSE)' -f $(YML) up -d $(EMULATOR))
-	@test $(COUNT) != 2 && : || (echo "More than 1 Container is running. Please shut them down!"; false)
+	@test $(COUNT) -eq 0 || : && (echo "Creating Container..." ; $(EXPORT) ;'$(COMPOSE)' -f $(YML) up -d $(EMULATOR))
+	@test $(COUNT) -ne 2 && : || (echo "More than 1 Container is running. Please shut them down!"; false)
 
 
 .PHONY: start
