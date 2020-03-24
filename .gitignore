@@ -6,7 +6,6 @@ trace.*
 docs/html
 docs/latex
 
-
 bin/FreeRTOS_Emulator
 
 CMakeLists.txt.user
@@ -14,7 +13,8 @@ CMakeCache.txt
 CMakeFiles
 CMakeScripts
 Testing
-Makefile
+/Makefile
+/build/Makefile
 cmake_install.cmake
 install_manifest.txt
 #compile_commands.json
