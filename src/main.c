@@ -470,7 +470,9 @@ void vDemoTask1(void *pvParameters)
 
 void playBallSound(void *args)
 {
-	//vPlaySample(a3);
+#ifndef EMULATOR
+	vPlaySample(a3);
+#endif /* EMULATOR */
 }
 
 void vDemoTask2(void *pvParameters)
@@ -591,7 +593,11 @@ int main(int argc, char *argv[])
 
 	vInitDrawing(bin_folder_path);
 	vInitEvents();
-	//vInitAudio(bin_folder_path);
+#ifndef EMULATOR
+	vInitAudio(bin_folder_path);
+#else
+#warning Audio Output is not supported in Emulator. Skipping Initialization...
+#endif /* EMULATOR */
 
 	atexit(aIODeinit);
 

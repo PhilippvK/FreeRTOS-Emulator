@@ -647,6 +647,7 @@ void vInitDrawing(char *path)
 	static char first = 1;
 
 	if (first) {
+#ifdef EMULATOR
 #ifndef HOST_OS
 #warning "HOST_OS undefined! Assuming 'unix'..."
 #elif HOST_OS != unix
@@ -656,7 +657,8 @@ void vInitDrawing(char *path)
 	// nothing
 #else
 #error "Unexpected value of HOST_OS!"
-#endif
+#endif /* HOST_OS */
+#endif /* EMULATOR */
 		first = 0;
 		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0){
 			fprintf(stderr, "[ERROR] SDL_Init failed: %s\n",SDL_GetError());
