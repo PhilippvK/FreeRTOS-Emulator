@@ -65,10 +65,28 @@ C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Xming> .\XLaunch.lnk -run $
 
 ### MacOS
 
-TODO
+Using a Homebrew-based development environment, things are getting much easier. Please follow these steps (Run the command in the Terminal Application):
+
+- Get Homebrew
 ```bash
-sudo pacman -S sdl2 sdl2_gfx sdl2_image sdl2_mixer sdl2_ttf
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
+- Install GNU Command Line Tools
+```bash
+brew install coreutils
+brew install make
+```
+- Make sure Git is installed (f.e. via Homebrew)
+- Install XQuartz X11 Server
+```bash
+brew cask install xquartz
+```
+- Enable OpenGL Support as Administrator (Do not forget to reboot afterwards) 
+```bash
+sudo defaults write org.macosforge.xquartz.X11 enable_iglx -bool true
+sudo reboot
+```
+- Try out the Emulator using the `make` targets explained below!
 
 ## Remarks
 
