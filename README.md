@@ -31,7 +31,7 @@ Should be quite straightforward as an X Window Server is installed by default.
 
 ### ARCH
 
-TODO (probably similar to Debian-based systems)
+*TODO!* (probably similar to Debian-based systems)
 
 ### Windows
 
@@ -101,7 +101,7 @@ make destroy # Stop the Docker Machine and remove it. (The image will stay cache
 
 Use this target to trigger a compilation. Preliminary dependenzies are automatically run beforehand.
 ```bash
-make compile
+make compile # Runs make in the build directory on the Container
 ```
 
 If you want to re-run cmake, run `make reload`
