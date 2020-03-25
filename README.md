@@ -22,12 +22,10 @@ cd docker # Main working directory for Emulator tasks
 
 ### Debian/Ubuntu
 
-Should be quite straigtforward as an X Window Server is installed by default.
+Should be quite straightforward as an X Window Server is installed by default.
 
-- Install
-```bash
-
-```
+- Install Docker-Engine (https://docs.docker.com/install/linux/docker-ce/ubuntu/) and Docker Compose (https://docs.docker.com/compose/install/) by following the instructions
+- This should be it.
 
 > :warning: **Keep in mind: The authorization for the X11 Connection is implemented in a quite insecure way, which should normally not be a problem but can be improved at a later point**
 
