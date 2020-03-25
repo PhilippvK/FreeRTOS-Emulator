@@ -2,7 +2,7 @@
 
 > :warning: **WORK IN PROGRESS!**
 
-<img src="docs/res/screenshot_emulator.png" alt="alt text" width=400>
+<img src="docs/res/screenshot_emulator.png" alt="Screenshot 1" width=300> <img src="docs/res/screenshot_emulator2.png" alt="Screenshot 2" width=300>
 
 ## Prerequisites
 
