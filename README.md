@@ -1,6 +1,8 @@
 # FreeRTOS Emulator using Docker Containers
 
-WORK IN PROGRESS!
+> :warning: **WORK IN PROGRESS!**
+
+<img src="docs/res/screenshot_emulator.png" alt="alt text" width=400>
 
 ## Prerequisites
 
