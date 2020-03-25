@@ -23,7 +23,7 @@ EXECUTABLE = FreeRTOS_Emulator
 DIRECTORY := $(strip $(shell "dirname" $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 ifeq ($(HOST_OS),win)
-	EXPORT := $$env:DIR='$(DIRECTORY)/..'
+	EXPORT := export DIR='$(DIRECTORY)/..'
 	PREPARE :=
 	DESTROY :=
 endif
