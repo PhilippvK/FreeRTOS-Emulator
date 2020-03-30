@@ -181,12 +181,16 @@ void vSwapBuffers(void *pvParameters)
   vInitDrawing(NULL); // Setup Rendering handle with correct GL context
 
 	while (1) {
-		xSemaphoreTake(ScreenLock, portMAX_DELAY);
-		vDrawUpdateScreen();
-		fetchEvents();
-		xSemaphoreGive(ScreenLock);
-		xSemaphoreGive(DrawSignal);
-		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(frameratePeriod));
+		if (ScreenLock) {
+			xSemaphoreTake(ScreenLock, portMAX_DELAY);
+			vDrawUpdateScreen();
+			fetchEvents();
+			xSemaphoreGive(ScreenLock);
+			if (DrawSignal) {
+				xSemaphoreGive(DrawSignal);
+			}
+			vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(frameratePeriod));
+		}
 	}
 }
 
