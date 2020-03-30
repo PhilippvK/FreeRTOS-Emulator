@@ -541,7 +541,6 @@ void vDemoTask2(void *pvParameters)
 int main(int argc, char *argv[])
 {
 	char *bin_folder_path = getBinFolderPath(argv[0]);
-	printf("%s\n", bin_folder_path);
 
 	vInitDrawing(bin_folder_path);
 	vInitEvents();
