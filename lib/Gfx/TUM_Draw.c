@@ -166,6 +166,7 @@ const int screen_width = SCREEN_WIDTH;
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
+SDL_GLContext context = NULL;
 TTF_Font *font = NULL;
 
 char *error_message = NULL;
@@ -616,50 +617,108 @@ char *tumGetErrorMessage(void)
 
 void vInitDrawing(char *path)
 {
-	SDL_Init(SDL_INIT_EVERYTHING);
-	TTF_Init();
+	static char firstCall = 1; // Used to transfer the Thread Context
 
-	bin_folder = malloc(sizeof(char) * (strlen(path) + 1));
-	if (!bin_folder) {
-		fprintf(stderr, "[ERROR] bin folder malloc failed\n");
-		exit(EXIT_FAILURE);
+	if (firstCall) { // Should be called from the Thread running main()
+		firstCall = 0;
+
+		/* Relevant for Docker-based toolchain */
+#ifdef DOCKER
+#ifndef HOST_OS
+#warning "HOST_OS undefined! Assuming 'linux'..."
+#elif HOST_OS != linux
+		setenv("LIBGL_ALWAYS_INDIRECT","1", 1); // speed up drawings a little bit
+		setenv("SDL_VIDEO_X11_VISUALID", "", 1); // required on windows and macos
+#elif HOST_OS == linux
+		// nothing
+#else
+#error "Unexpected value of HOST_OS!"
+#endif /* HOST_OS */
+#endif /* DOCKER */
+
+		if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+			logSDLError("vInitDrawing->Init");
+			exit(-1);
+		}
+		TTF_Init();
+
+		bin_folder = malloc(sizeof(char) * (strlen(path) + 1));
+		if (!bin_folder) {
+			fprintf(stderr, "[ERROR] bin folder malloc failed\n");
+			exit(EXIT_FAILURE);
+		}
+		strcpy(bin_folder, path);
+
+		char *buffer = prepend_path(path, FONT_LOCATION);
+
+		font = TTF_OpenFont(buffer, DEFAULT_FONT_SIZE);
+		if (!font)
+			logSDLTTFError("vInitDrawing->OpenFont");
+
+		free(buffer);
+
+		window = SDL_CreateWindow("FreeRTOS Simulator", SDL_WINDOWPOS_CENTERED,
+						SDL_WINDOWPOS_CENTERED, screen_width,
+						screen_height, SDL_WINDOW_OPENGL);
+
+		if (!window) {
+			logSDLError("vInitDrawing->CreateWindow");
+			SDL_Quit();
+			exit(-1);
+		}
+
+		context = SDL_GL_CreateContext(window);
+
+		if (!context) {
+			logSDLError("vInitDrawing->CreateContext");
+			SDL_DestroyWindow(window);
+			SDL_Quit();
+			exit(-1);
+		}
+
+		if (SDL_GL_MakeCurrent(window, context) < 0) { // Claim GL Context
+			logSDLError("vInitDrawing->MakeCurrent");
+			SDL_GL_DeleteContext(context);
+			SDL_DestroyWindow(window);
+			SDL_Quit();
+			exit(-1);
+		}
+
+		if (SDL_GL_MakeCurrent(window, NULL) < 0) { // Release GL Context
+			logSDLError("vInitDrawing->MakeCurrent");
+			SDL_GL_DeleteContext(context);
+			SDL_DestroyWindow(window);
+			SDL_Quit();
+			exit(-1);
+		}
+
+		atexit(SDL_Quit);
+
+	} else { // Should be called from the Drawing Thread
+
+		if (SDL_GL_MakeCurrent(window, context) < 0) { // Claim GL Context
+			logSDLError("vInitDrawing->MakeCurrent");
+			SDL_GL_DeleteContext(context);
+			SDL_DestroyWindow(window);
+			SDL_Quit();
+			exit(-1);
+		}
+
+		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED |
+									SDL_RENDERER_TARGETTEXTURE | SDL_RENDERER_PRESENTVSYNC);
+
+		if (!renderer) {
+			logSDLError("vInitDrawing->CreateRenderer");
+			SDL_GL_DeleteContext(context);
+			SDL_DestroyWindow(window);
+			SDL_Quit();
+			exit(-1);
+		}
+
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+		SDL_RenderClear(renderer);
 	}
-	strcpy(bin_folder, path);
-
-	char *buffer = prepend_path(path, FONT_LOCATION);
-
-	font = TTF_OpenFont(buffer, DEFAULT_FONT_SIZE);
-	if (!font)
-		logSDLTTFError("vInitDrawing->OpenFont");
-
-	free(buffer);
-
-	window = SDL_CreateWindow("FreeRTOS Simulator", SDL_WINDOWPOS_CENTERED,
-				  SDL_WINDOWPOS_CENTERED, screen_width,
-				  screen_height, SDL_WINDOW_SHOWN);
-
-	if (!window) {
-		logSDLError("vInitDrawing->CreateWindow");
-		SDL_Quit();
-		exit(-1);
-	}
-
-	renderer = SDL_CreateRenderer(window, -1,
-				      SDL_RENDERER_ACCELERATED |
-					      SDL_RENDERER_TARGETTEXTURE);
-
-	if (!renderer) {
-		logSDLError("vInitDrawing->CreateRenderer");
-		SDL_DestroyWindow(window);
-		SDL_Quit();
-		exit(-1);
-	}
-
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
-	SDL_RenderClear(renderer);
-
-	atexit(SDL_Quit);
 }
 
 void vExitDrawing(void)
