@@ -450,13 +450,13 @@ void vDemoTask1(void *pvParameters)
 				vDrawCave();
 				vDrawButtonText();
 
+				// Draw FPS in lower right corner
+				vDrawFPS();
+
 				xSemaphoreGive(ScreenLock);
 
 				// Get input and check for state change
 				vCheckStateInput();
-
-				// Draw FPS in lower right corner
-				vDrawFPS();
 			}
 	}
 }
