@@ -623,7 +623,12 @@ static float timespecDiffMilli(struct timespec *start, struct timespec *stop)
 
 void vDrawUpdateScreen(void)
 {
-    static struct timespec last_time = { 0 }, cur_time = { 0 };
+    if(tumUtilIsCurGLThread()){
+        PRINT_ERROR("Updating screen from thread that does not hold GL context");
+        goto err;
+    }
+
+	static struct timespec last_time = { 0 }, cur_time = { 0 };
 
     if (clock_gettime(CLOCK_MONOTONIC, &cur_time)) {
         PRINT_ERROR("Failed to get monotonic clock");
@@ -769,7 +774,9 @@ int vBindDrawing(void) // Should be called from the Drawing Thread
 
     SDL_RenderClear(renderer);
 
-    return 0;
+    tumUtilSetGLThread();
+
+	return 0;
 
 err_renderer:
     SDL_DestroyWindow(window);
